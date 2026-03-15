@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/maikramer/Materialize-CLI/tree/master/docs
+    about: Browse docs (architecture, CLI API, roadmap)
+  - name: Discussions
+    url: https://github.com/maikramer/Materialize-CLI/discussions
+    about: Ask questions or share ideas
