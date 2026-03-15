@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Materialize CLI Installer - Instalação multiplataforma
-Modelo: mesmo estilo denv-cli / pc-cli / Galaxy (installer Python, binário Rust)
+Materialize CLI Installer - Cross-platform installation
+Style: Python installer, Rust binary (similar to denv-cli / galaxy).
 """
 
 import os
@@ -19,7 +19,7 @@ CLI_NAME = "materialize"
 
 
 class Colors:
-    """Cores para terminal"""
+    """Terminal colors."""
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -31,7 +31,7 @@ class Colors:
 
 
 class Installer:
-    """Instalador multiplataforma do Materialize CLI (Rust)"""
+    """Cross-platform installer for Materialize CLI (Rust)."""
 
     def __init__(self):
         # Diretório do instalador (installer/) e raiz do repo (Materialize-CLI/)
@@ -56,7 +56,7 @@ class Installer:
         self.installed_binary = self.bin_dir / CLI_NAME
 
     def print_header(self, text: str):
-        """Print header formatado"""
+        """Print formatted header."""
         print(f"\n{Colors.BOLD}{Colors.OKCYAN}{text}{Colors.ENDC}")
         print("=" * len(text))
 
@@ -73,8 +73,8 @@ class Installer:
         print(f"{Colors.OKBLUE}ℹ {text}{Colors.ENDC}")
 
     def check_python(self) -> bool:
-        """Verifica Python 3 (para rodar este instalador)"""
-        self.print_header("Verificando dependências")
+        """Check Python 3 (required to run this installer)."""
+        self.print_header("Checking dependencies")
         try:
             result = subprocess.run(
                 [sys.executable, "--version"],
@@ -86,11 +86,11 @@ class Installer:
             self.print_success(f"Python: {result.stdout.strip()}")
             return True
         except Exception as e:
-            self.print_error(f"Python não encontrado: {e}")
+            self.print_error(f"Python not found: {e}")
             return False
 
     def check_cargo(self) -> bool:
-        """Verifica se Rust/cargo está instalado"""
+        """Check if Rust/cargo is installed."""
         try:
             result = subprocess.run(
                 ["cargo", "--version"],
@@ -102,7 +102,7 @@ class Installer:
             self.print_success(f"Rust: {result.stdout.strip()}")
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
-            self.print_warning("cargo não encontrado no PATH")
+            self.print_warning("cargo not found in PATH")
             return False
 
     def get_existing_binary(self) -> Optional[Path]:
@@ -114,8 +114,8 @@ class Installer:
         return None
 
     def build_release(self) -> bool:
-        """Executa cargo build --release."""
-        self.print_header("Compilando Materialize CLI (release)")
+        """Run cargo build --release."""
+        self.print_header("Building Materialize CLI (release)")
         try:
             subprocess.run(
                 ["cargo", "build", "--release"],
@@ -123,31 +123,31 @@ class Installer:
                 check=True,
                 timeout=600,
             )
-            self.print_success("Build concluído: target/release/" + CARGO_BIN_NAME)
+            self.print_success("Build complete: target/release/" + CARGO_BIN_NAME)
             return True
         except subprocess.CalledProcessError as e:
-            self.print_error(f"Falha no build: {e}")
+            self.print_error(f"Build failed: {e}")
             return False
         except FileNotFoundError:
-            self.print_error("cargo não encontrado. Instale Rust: https://rustup.rs")
+            self.print_error("cargo not found. Install Rust: https://rustup.rs")
             return False
         except subprocess.TimeoutExpired:
-            self.print_error("Build excedeu o tempo limite")
+            self.print_error("Build timed out")
             return False
 
     def create_bin_dir(self) -> bool:
-        """Cria diretório de binários."""
+        """Create binary directory."""
         try:
             self.bin_dir.mkdir(parents=True, exist_ok=True)
-            self.print_success(f"Diretório: {self.bin_dir}")
+            self.print_success(f"Directory: {self.bin_dir}")
             return True
         except Exception as e:
-            self.print_error(f"Não foi possível criar diretório: {e}")
+            self.print_error(f"Could not create directory: {e}")
             return False
 
     def install_binary(self) -> bool:
-        """Copia ou linka o binário para o diretório no PATH."""
-        self.print_header("Instalando binário")
+        """Copy or link the binary to the PATH directory."""
+        self.print_header("Installing binary")
 
         src = self.get_existing_binary()
         if not src:
@@ -158,7 +158,7 @@ class Installer:
             src = self.release_binary
 
         if not src.exists():
-            self.print_error(f"Binário não encontrado: {src}")
+            self.print_error(f"Binary not found: {src}")
             return False
 
         try:
@@ -167,15 +167,15 @@ class Installer:
                 dest.unlink()
             shutil.copy2(src, dest)
             dest.chmod(0o755)
-            self.print_success(f"{CLI_NAME} instalado em {dest}")
+            self.print_success(f"{CLI_NAME} installed at {dest}")
             return True
         except Exception as e:
-            self.print_error(f"Erro ao instalar: {e}")
+            self.print_error(f"Install error: {e}")
             return False
 
     def update_path(self) -> bool:
-        """Informa sobre PATH."""
-        self.print_header("Configurando PATH")
+        """Inform about PATH."""
+        self.print_header("Configuring PATH")
         bin_str = str(self.bin_dir)
         path_env = os.environ.get('PATH', '')
 
@@ -185,20 +185,20 @@ class Installer:
             path_sep = ':'
 
         if bin_str in path_env:
-            self.print_success(f"{bin_str} já está no PATH")
+            self.print_success(f"{bin_str} is already on PATH")
             return True
 
-        self.print_warning(f"{bin_str} pode não estar no PATH")
+        self.print_warning(f"{bin_str} may not be on PATH")
         if not self.is_windows:
-            self.print_info("Adicione ao ~/.bashrc ou ~/.zshrc:")
+            self.print_info("Add to ~/.bashrc or ~/.zshrc:")
             self.print_info(f'  export PATH="{bin_str}:$PATH"')
         else:
-            self.print_info(f"Adicione manualmente ao PATH do sistema: {bin_str}")
+            self.print_info(f"Add to system PATH manually: {bin_str}")
         return False
 
     def test_installation(self) -> bool:
-        """Testa o comando instalado."""
-        self.print_header("Testando instalação")
+        """Test the installed command."""
+        self.print_header("Testing installation")
         try:
             result = subprocess.run(
                 [str(self.installed_binary), "--version"],
@@ -207,35 +207,35 @@ class Installer:
                 timeout=10,
             )
             if result.returncode == 0:
-                self.print_success(f"Versão: {result.stdout.strip()}")
+                self.print_success(f"Version: {result.stdout.strip()}")
                 return True
-            self.print_warning("Teste retornou código não zero")
+            self.print_warning("Test returned non-zero exit code")
             return True
         except Exception as e:
-            self.print_warning(f"Não foi possível testar: {e}")
+            self.print_warning(f"Could not run test: {e}")
             return True
 
     def uninstall(self) -> bool:
-        """Remove o binário do diretório de instalação."""
-        self.print_header("Desinstalando Materialize CLI")
+        """Remove the binary from the install directory."""
+        self.print_header("Uninstalling Materialize CLI")
         try:
             for name in [CLI_NAME]:
                 p = self.bin_dir / name
                 if p.exists():
                     p.unlink()
-                    self.print_success(f"Removido: {p}")
-            self.print_success("Materialize CLI desinstalado.")
+                    self.print_success(f"Removed: {p}")
+            self.print_success("Materialize CLI uninstalled.")
             return True
         except Exception as e:
-            self.print_error(f"Erro ao desinstalar: {e}")
+            self.print_error(f"Uninstall error: {e}")
             return False
 
     def install(self) -> bool:
-        """Executa instalação completa."""
+        """Run full installation."""
         self.print_header("Materialize CLI Installer")
-        print(f"Plataforma: {platform.system()}")
-        print(f"Repositório: {self.repo_dir}")
-        print(f"Binários em: {self.bin_dir}")
+        print(f"Platform: {platform.system()}")
+        print(f"Repository: {self.repo_dir}")
+        print(f"Binaries to: {self.bin_dir}")
 
         if not self.check_python():
             return False
@@ -247,12 +247,12 @@ class Installer:
         self.update_path()
         self.test_installation()
 
-        self.print_header("Instalação concluída")
-        print("\nUso:")
-        print(f"  {CLI_NAME} texture.png -o ./out/   # Gerar mapas PBR")
-        print(f"  {CLI_NAME} --help                   # Ajuda")
+        self.print_header("Installation complete")
+        print("\nUsage:")
+        print(f"  {CLI_NAME} texture.png -o ./out/   # Generate PBR maps")
+        print(f"  {CLI_NAME} --help                   # Help")
         if not self.is_windows:
-            print(f"\nSe '{CLI_NAME}' não for encontrado, adicione ao PATH:")
+            print(f"\nIf '{CLI_NAME}' is not found, add to PATH:")
             print(f'  export PATH="{self.bin_dir}:$PATH"')
         return True
 
@@ -264,8 +264,8 @@ def main():
         description="Materialize CLI Installer (Rust)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemplos:
-  ./install.sh              # Instala (Linux/macOS)
+Examples:
+  ./install.sh              # Install (Linux/macOS)
   python3 installer/installer.py install
   python3 installer/installer.py uninstall
   python3 installer/installer.py reinstall
@@ -276,7 +276,7 @@ Exemplos:
         nargs='?',
         default='install',
         choices=['install', 'uninstall', 'reinstall'],
-        help='Ação (padrão: install)',
+        help='Action (default: install)',
     )
     args = parser.parse_args()
 

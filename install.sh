@@ -3,13 +3,13 @@
 # Materialize CLI Installer - Linux/macOS
 # =============================================================================
 #
-# Instala o Materialize CLI (gera mapas PBR a partir de texturas).
-# Requer: Python 3 (para o instalador), Rust/cargo (para compilar).
+# Installs Materialize CLI (generates PBR maps from textures).
+# Requires: Python 3 (for the installer), Rust/cargo (to build).
 #
-# Uso:
-#   ./install.sh              # Instalação em ~/.local/bin
-#   ./install.sh uninstall    # Desinstalação
-#   ./install.sh reinstall    # Reinstalação
+# Usage:
+#   ./install.sh              # Install to ~/.local/bin
+#   ./install.sh uninstall    # Uninstall
+#   ./install.sh reinstall   # Reinstall
 #
 # =============================================================================
 
@@ -27,13 +27,13 @@ echo -e "${CYAN}🚀 Materialize CLI Installer${NC}"
 echo "================================"
 
 if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}✗ Python 3 não encontrado${NC}"
-    echo "Instale Python 3 (necessário para rodar o instalador):"
+    echo -e "${RED}✗ Python 3 not found${NC}"
+    echo "Install Python 3 (required to run the installer):"
     echo "  Ubuntu/Debian: sudo apt install python3"
     echo "  macOS: brew install python3"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Python 3 encontrado${NC}"
+echo -e "${GREEN}✓ Python 3 found${NC}"
 
 python3 installer/installer.py "$@"

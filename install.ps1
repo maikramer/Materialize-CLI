@@ -1,12 +1,12 @@
 # Materialize CLI Installer - Windows PowerShell
 #
-# Instala o Materialize CLI (gera mapas PBR a partir de texturas).
-# Requisitos: PowerShell 5.1+, Python 3 (instalador), Rust/cargo (compilar).
+# Installs Materialize CLI (generates PBR maps from textures).
+# Requirements: PowerShell 5.1+, Python 3 (installer), Rust/cargo (to build).
 #
-# Uso:
-#   .\install.ps1              # Instalação
-#   .\install.ps1 uninstall   # Desinstalação
-#   .\install.ps1 reinstall   # Reinstalação
+# Usage:
+#   .\install.ps1              # Install
+#   .\install.ps1 uninstall   # Uninstall
+#   .\install.ps1 reinstall   # Reinstall
 #
 
 param(
@@ -30,8 +30,8 @@ if (-not $pythonCmd) {
     $pythonCmd = Get-Command python3 -ErrorAction SilentlyContinue
 }
 if (-not $pythonCmd) {
-    Write-Host "${Red}✗ Python não encontrado${Reset}"
-    Write-Host "Instale Python 3 de https://python.org"
+    Write-Host "${Red}✗ Python not found${Reset}"
+    Write-Host "Install Python 3 from https://python.org"
     exit 1
 }
 
