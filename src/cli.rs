@@ -36,7 +36,8 @@ impl std::fmt::Display for OutputFormat {
 #[derive(Parser, Debug)]
 #[command(name = "materialize")]
 #[command(about = "Generate PBR maps from diffuse textures")]
-#[command(version = "1.0.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(after_help = "EXAMPLES:\n  materialize texture.png -o ./out/\n  materialize diffuse.png --format png -v")]
 pub struct Cli {
     #[arg(help = "Input image path")]
     pub input: String,
@@ -47,9 +48,12 @@ pub struct Cli {
     #[arg(short, long, help = "Output format (png, jpg, tga, exr)", default_value = "png")]
     pub format: OutputFormat,
 
-    #[arg(short, long, help = "JPEG quality (0-100)", default_value = "95")]
+    #[arg(short, long, help = "JPEG quality 0-100 (ignored for other formats)", default_value = "95", value_parser = clap::value_parser!(u8).range(0..=100))]
     pub quality: u8,
 
     #[arg(short, long, help = "Verbose output")]
     pub verbose: bool,
+
+    #[arg(long, help = "Suppress 'Generated' file list on success")]
+    pub quiet: bool,
 }

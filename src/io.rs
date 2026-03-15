@@ -2,6 +2,14 @@ use anyhow::{Context, Result};
 use image::{DynamicImage, ImageFormat};
 use std::path::Path;
 
+/// Paths for the three PBR map outputs.
+#[derive(Debug, Clone)]
+pub struct OutputPaths {
+    pub height_path: String,
+    pub normal_path: String,
+    pub metallic_path: String,
+}
+
 pub fn load_image(path: &str) -> Result<DynamicImage> {
     let path = Path::new(path);
 
@@ -19,24 +27,27 @@ pub fn save_image(
     image: &DynamicImage,
     path: &str,
     format: ImageFormat,
-    _quality: u8,
+    quality: u8,
 ) -> Result<()> {
     let path = Path::new(path);
 
-    // Create parent directory if needed
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
             .with_context(|| format!("Failed to create directory: {}", parent.display()))?;
     }
 
-    // Save the image
-    // Note: quality is only used for JPEG, ignored for other formats
     match format {
         ImageFormat::Jpeg => {
-            // Convert to RGB for JPEG (no alpha)
             let rgb = image.to_rgb8();
-            rgb.save_with_format(path, format)
-                .with_context(|| format!("Failed to save image: {}", path.display()))?;
+            let file = std::fs::File::create(path)
+                .with_context(|| format!("Failed to create file: {}", path.display()))?;
+            let mut writer = std::io::BufWriter::new(file);
+            // Quality 0 is invalid for JPEG; encoder expects 1-100
+            let q = quality.clamp(1, 100);
+            let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut writer, q);
+            encoder
+                .encode_image(&rgb)
+                .with_context(|| format!("Failed to save JPEG: {}", path.display()))?;
         }
         _ => {
             image
@@ -52,7 +63,7 @@ pub fn get_output_paths(
     input_path: &str,
     output_dir: &str,
     format: &str,
-) -> (String, String, String) {
+) -> OutputPaths {
     let input_name = Path::new(input_path)
         .file_stem()
         .and_then(|s| s.to_str())
@@ -63,11 +74,11 @@ pub fn get_output_paths(
         _ => format,
     };
 
-    let height_path = format!("{}/{}_height.{}", output_dir, input_name, ext);
-    let normal_path = format!("{}/{}_normal.{}", output_dir, input_name, ext);
-    let metallic_path = format!("{}/{}_metallic.{}", output_dir, input_name, ext);
-
-    (height_path, normal_path, metallic_path)
+    OutputPaths {
+        height_path: format!("{}/{}_height.{}", output_dir, input_name, ext),
+        normal_path: format!("{}/{}_normal.{}", output_dir, input_name, ext),
+        metallic_path: format!("{}/{}_metallic.{}", output_dir, input_name, ext),
+    }
 }
 
 /// Convert height map (f32) to grayscale image
@@ -139,18 +150,18 @@ mod tests {
 
     #[test]
     fn test_get_output_paths() {
-        let (h, n, m) = get_output_paths("textures/brick.png", "./output", "png");
-        assert_eq!(h, "./output/brick_height.png");
-        assert_eq!(n, "./output/brick_normal.png");
-        assert_eq!(m, "./output/brick_metallic.png");
+        let p = get_output_paths("textures/brick.png", "./output", "png");
+        assert_eq!(p.height_path, "./output/brick_height.png");
+        assert_eq!(p.normal_path, "./output/brick_normal.png");
+        assert_eq!(p.metallic_path, "./output/brick_metallic.png");
     }
 
     #[test]
     fn test_get_output_paths_jpg() {
-        let (h, n, m) = get_output_paths("textures/brick.png", "./output", "jpg");
-        assert_eq!(h, "./output/brick_height.jpg");
-        assert_eq!(n, "./output/brick_normal.jpg");
-        assert_eq!(m, "./output/brick_metallic.jpg");
+        let p = get_output_paths("textures/brick.png", "./output", "jpg");
+        assert_eq!(p.height_path, "./output/brick_height.jpg");
+        assert_eq!(p.normal_path, "./output/brick_normal.jpg");
+        assert_eq!(p.metallic_path, "./output/brick_metallic.jpg");
     }
 
     #[test]
