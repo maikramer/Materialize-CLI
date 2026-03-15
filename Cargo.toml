@@ -2,8 +2,12 @@
 name = "materialize-cli"
 version = "1.0.0"
 edition = "2021"
-description = "Generate PBR maps from diffuse textures"
+description = "Generate PBR maps from diffuse textures using GPU compute shaders"
 license = "MIT"
+repository = "https://github.com/maikramer/Materialize-CLI"
+readme = "README.md"
+keywords = ["pbr", "texture", "normal-map", "gpu", "wgpu"]
+categories = ["graphics", "command-line-utilities"]
 
 [dependencies]
 wgpu = "0.19"
