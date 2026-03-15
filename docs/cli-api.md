@@ -3,8 +3,10 @@
 ## Sintaxe
 
 ```
-materialize [OPTIONS] <INPUT>
+materialize [OPTIONS] [INPUT] [COMMAND]
 ```
+
+**Subcomandos:** `skill install` — instala a skill do materialize-cli em `.cursor/skills/materialize-cli` do diretório atual (projeto em que você está trabalhando).
 
 ## Argumentos
 
@@ -21,11 +23,8 @@ materialize [OPTIONS] <INPUT>
 | `--output` | `-o` | String | `./` | Diretório de saída |
 | `--format` | `-f` | Enum | `png` | Formato dos arquivos de saída |
 | `--quality` | `-q` | Int (0-100) | `95` | Qualidade JPEG (quando aplicável) |
-| `--prefix` | `-p` | String | (input stem) | Prefixo para nomes de arquivo |
-| `--suffix-height` | | String | `_height` | Sufixo para height map |
-| `--suffix-normal` | | String | `_normal` | Sufixo para normal map |
-| `--suffix-metallic` | | String | `_metallic` | Sufixo para metallic map |
 | `--verbose` | `-v` | Bool | `false` | Modo verbose |
+| `--quiet` | | Bool | `false` | Não listar arquivos gerados no sucesso |
 | `--help` | `-h` | | | Mostrar ajuda |
 | `--version` | `-V` | | | Mostrar versão |
 
@@ -51,28 +50,9 @@ Output:
 - `texture_height.png`
 - `texture_normal.png`
 - `texture_metallic.png`
-
-### Com prefixo customizado
-
-```bash
-materialize texture.png -p brick_wall
-```
-
-Output:
-- `brick_wall_height.png`
-- `brick_wall_normal.png`
-- `brick_wall_metallic.png`
-
-### Com sufixos customizados
-
-```bash
-materialize texture.png --suffix-height="_h" --suffix-normal="_n" --suffix-metallic="_m"
-```
-
-Output:
-- `texture_h.png`
-- `texture_n.png`
-- `texture_m.png`
+- `texture_smoothness.png`
+- `texture_edge.png`
+- `texture_ao.png`
 
 ## Códigos de Saída
 
@@ -144,10 +124,7 @@ Total time: 89ms
 materialize brick.png
 ```
 
-Gera na pasta atual:
-- `brick_height.png`
-- `brick_normal.png`
-- `brick_metallic.png`
+Gera na pasta atual os seis mapas (height, normal, metallic, smoothness, edge, ao).
 
 ### Exemplo 2: Diretório de saída
 
@@ -155,10 +132,7 @@ Gera na pasta atual:
 materialize brick.png -o ./materials/brick/
 ```
 
-Gera em `./materials/brick/`:
-- `brick_height.png`
-- `brick_normal.png`
-- `brick_metallic.png`
+Gera em `./materials/brick/` os seis mapas com prefixo do nome do arquivo.
 
 ### Exemplo 3: Pipeline em script
 
@@ -210,9 +184,9 @@ fi
 ### Captura de output
 
 ```bash
-# Capturar apenas arquivos gerados
-files=$(materialize texture.png -v | grep "^-" | awk '{print $2}')
-echo "Generated: $files"
+# Com --quiet não imprime a lista; sem --quiet imprime "Generated:" e os 6 paths
+materialize texture.png -o ./out/
+materialize texture.png -o ./out/ --quiet
 ```
 
 ## Variáveis de Ambiente

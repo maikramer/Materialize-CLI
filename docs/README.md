@@ -4,11 +4,14 @@ CLI minimalista em Rust que converte imagens em materiais PBR (Physically Based 
 
 ## Visão Geral
 
-Materialize CLI é uma ferramenta de linha de comando que transforma uma imagem difusa em três mapas PBR essenciais:
+Materialize CLI é uma ferramenta de linha de comando que transforma uma imagem difusa em seis mapas PBR:
 
 - **Height Map** - Representação de elevação da superfície
 - **Normal Map** - Vetores de superfície para iluminação
 - **Metallic Map** - Máscara de metalicidade
+- **Smoothness Map** - Rugosidade/suavidade (base + contribuição metálica)
+- **Edge Map** - Detecção de bordas a partir da normal
+- **AO Map** - Ambient Occlusion (cavity-style a partir do height)
 
 Baseado no [Materialize original](https://github.com/BoundingBoxSoftware/Materialize) (Unity/Windows), esta versão CLI é:
 
@@ -58,9 +61,8 @@ cargo install --path .
 materialize texture.png
 
 # Saída gerada:
-# - texture_height.png
-# - texture_normal.png
-# - texture_metallic.png
+# - texture_height.png, texture_normal.png, texture_metallic.png
+# - texture_smoothness.png, texture_edge.png, texture_ao.png
 
 # Especificar diretório de saída
 materialize texture.png -o ./output/

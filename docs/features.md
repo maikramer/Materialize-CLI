@@ -64,6 +64,39 @@ Detecta áreas metálicas por análise de cor.
 - Diferenciação metal/não-metal
 - Reflexos específicos por material
 
+### Smoothness Map
+
+Define rugosidade/suavidade da superfície para PBR.
+
+**Entrada:** Imagem difusa + mapa metallic (gerados internamente)
+**Saída:** Smoothness map (grayscale, 0 = rugoso, 1 = liso)
+
+**Algoritmo:** Base smoothness (0.25) + contribuição do metallic (0.65 × metallic). Metais tendem a ser mais lisos.
+
+**Uso típico:** Roughness/smoothness em shaders PBR (Unity, Unreal, etc.).
+
+### Edge Map
+
+Destaca bordas e vincos a partir do mapa de normal.
+
+**Entrada:** Normal map (gerado internamente)
+**Saída:** Edge map (grayscale)
+
+**Algoritmo:** Gradiente da normal (amostras ±1 pixel em X e Y), combinado com contraste. Inspirado no Materialize original (Blit_Edge_From_Normal).
+
+**Uso típico:** Outline, cavity, ou máscaras para pós-processamento.
+
+### AO Map (Ambient Occlusion)
+
+Oclusão ambiente no estilo cavity, a partir do height map.
+
+**Entrada:** Height map (gerado internamente)
+**Saída:** AO map (grayscale, 0 = ocluído, 1 = aberto)
+
+**Algoritmo:** Amostras em 8 direções (raios 1 e 2 pixels); oclusão quando altura da amostra > centro; resultado invertido e escalado.
+
+**Uso típico:** Sombreamento em frestas e cantos em pipelines PBR.
+
 ## Formatos Suportados
 
 ### Entrada (Leitura)
@@ -102,11 +135,11 @@ materialize <INPUT> [OPTIONS]
 
 | Opção | Curta | Descrição | Padrão |
 |-------|-------|-----------|--------|
-| `--output` | `-o` | Diretório de saída | Mesmo diretório do input |
-| `--format` | `-f` | Formato de saída | png |
+| `--output` | `-o` | Diretório de saída | `.` |
+| `--format` | `-f` | Formato de saída (png, jpg, tga, exr) | png |
 | `--quality` | `-q` | Qualidade JPEG (0-100) | 95 |
-| `--prefix` | `-p` | Prefixo dos arquivos de saída | nome do input |
 | `--verbose` | `-v` | Modo verbose | false |
+| `--quiet` | | Não listar arquivos gerados no sucesso | false |
 | `--help` | `-h` | Mostrar ajuda | - |
 | `--version` | `-V` | Mostrar versão | - |
 
@@ -115,51 +148,35 @@ materialize <INPUT> [OPTIONS]
 ```bash
 # Básico - gera na mesma pasta
 materialize texture.png
-# Resultado: texture_height.png, texture_normal.png, texture_metallic.png
+# Resultado: texture_height.png, texture_normal.png, texture_metallic.png,
+#           texture_smoothness.png, texture_edge.png, texture_ao.png
 
 # Diretório de saída específico
 materialize texture.png -o ./materials/
-# Resultado: ./materials/texture_height.png, etc.
 
 # Formato diferente
 materialize texture.png -f exr
-# Resultado: texture_height.exr (melhor para precisão)
 
 # JPEG com qualidade baixa (mais compacto)
 materialize texture.jpg -f jpg -q 80
 
-# Prefixo customizado
-materialize texture.png -p brick_wall
-# Resultado: brick_wall_height.png, brick_wall_normal.png, etc.
-
-# Verbose - mostra progresso
+# Verbose - mostra progresso; --quiet suprime a lista de arquivos
 materialize texture.png -v
-# Output: Loading texture.png... 2048x2048
-#         Processing height map... done (45ms)
-#         Processing normal map... done (12ms)
-#         Processing metallic map... done (18ms)
-#         Saving outputs... done
+materialize texture.png --quiet
+
+# Instalar a skill do Cursor no projeto atual
+materialize skill install
 ```
 
 ## Features Futuras (Roadmap)
 
-### Versão 1.1 - Smoothness
-
-- **Smoothness Map:** Similar ao metallic, detecta rugosidade da superfície
-- **One Roughness:** Parâmetro global de roughness
-
-### Versão 1.2 - Batch Processing
+### Versão 1.1 - Batch Processing
 
 - **Diretório como input:** `materialize ./textures/`
 - **Paralelização:** Processa múltiplas imagens simultaneamente
 - **Progress bar:** Indicação visual de progresso
 
-### Versão 2.0 - AO (Ambient Occlusion)
-
-- **AO Map:** Oclusão ambiente via ray marching
-- **Configurações:** Ray count, max distance, spread
-
-### Versão 2.1 - Configuração Avançada
+### Versão 2.0 - Configuração Avançada
 
 - **Arquivo de configuração:** `materialize.toml` para parâmetros customizados
 - **Override por mapa:** `--height-blur=5.0 --normal-intensity=2.5`
@@ -207,10 +224,11 @@ materialize marble_scan.png -f exr -o ./materials/marble/
 
 ### MVP (Versão 1.0)
 
-1. **Parâmetros fixos:** Defaults hardcoded, sem ajuste fino
+1. **Parâmetros fixos:** Defaults hardcoded (smoothness base/metal, AO depth scale, etc.), sem ajuste fino
 2. **Resolução máxima:** Limitada por GPU memory (tipicamente 8K+)
-3. **Um formato por execução:** Todos os outputs no mesmo formato
+3. **Um formato por execução:** Todos os seis mapas no mesmo formato
 4. **Sem alpha handling:** Canal alpha ignorado no processamento
+5. **AO simplificado:** Cavity-style a partir do height; o Materialize original usa ray marching com normal+height
 
 ### Futuro
 

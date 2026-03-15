@@ -1,6 +1,8 @@
 # Materialize CLI
 
-CLI em Rust que gera mapas PBR (Height, Normal, Metallic) a partir de texturas, usando compute shaders GPU (wgpu).
+CLI em Rust que gera mapas PBR a partir de texturas difusas, usando compute shaders GPU (wgpu).
+
+**Mapas gerados:** Height, Normal, Metallic, Smoothness, Edge, AO (Ambient Occlusion).
 
 ## Instalação rápida
 
@@ -19,7 +21,13 @@ Requisitos: **Python 3** (instalador) e **Rust** (cargo) para compilar. O instal
 
 ```bash
 materialize texture.png -o ./out/ -v
-# Gera: texture_height.png, texture_normal.png, texture_metallic.png
+# Gera: texture_height.png, texture_normal.png, texture_metallic.png,
+#       texture_smoothness.png, texture_edge.png, texture_ao.png
+
+materialize diffuse.png --format png --quiet   # sem listar arquivos no stdout
+
+# Instalar a skill do Cursor no projeto atual (.cursor/skills/materialize-cli)
+materialize skill install
 ```
 
 ## Documentação

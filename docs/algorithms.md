@@ -2,11 +2,14 @@
 
 ## Visão Geral
 
-O Materialize CLI implementa três algoritmos principais, cada um executado como um compute shader WGSL:
+O Materialize CLI implementa seis algoritmos principais, cada um executado como compute shader WGSL:
 
 1. **Height from Diffuse** - Extrai informação de altura da imagem colorida
 2. **Normal from Height** - Calcula vetores normais a partir do height map
 3. **Metallic from Diffuse** - Detecta metalicidade por análise de cor
+4. **Smoothness** - Base + contribuição do metallic (difusa + metallic como entrada)
+5. **Edge from Normal** - Gradiente da normal (X/Y) para detecção de bordas
+6. **AO from Height** - Cavity-style: amostras em 8 direções, oclusão quando vizinho > centro
 
 ## 1. Height Map Generation
 

@@ -13,7 +13,10 @@ src/
 └── shaders/
     ├── height.wgsl      # Height map generation
     ├── normal.wgsl      # Normal map from height
-    └── metallic.wgsl    # Metallic detection
+    ├── metallic.wgsl    # Metallic detection
+    ├── smoothness.wgsl  # Smoothness (diffuse + metallic)
+    ├── edge.wgsl        # Edge from normal gradient
+    └── ao.wgsl          # AO cavity-style from height
 ```
 
 ### Compilação
@@ -25,6 +28,9 @@ Shaders são embutidos no binário via `include_str!`:
 const HEIGHT_SHADER: &str = include_str!("shaders/height.wgsl");
 const NORMAL_SHADER: &str = include_str!("shaders/normal.wgsl");
 const METALLIC_SHADER: &str = include_str!("shaders/metallic.wgsl");
+const SMOOTHNESS_SHADER: &str = include_str!("shaders/smoothness.wgsl");
+const EDGE_SHADER: &str = include_str!("shaders/edge.wgsl");
+const AO_SHADER: &str = include_str!("shaders/ao.wgsl");
 ```
 
 Isso elimina dependências de arquivos externos em runtime.

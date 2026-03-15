@@ -2,15 +2,18 @@
 
 ## Versão 1.0 (MVP) - Atual
 
-**Status:** Em desenvolvimento
+**Status:** Estável
 
 ### Features
 
 - [x] Height map generation via multi-level blur
 - [x] Normal map from height via Sobel operator
 - [x] Metallic map via HSL analysis
-- [x] CLI interface básica (clap)
-- [x] wgpu compute shaders
+- [x] Smoothness map (base + metallic contribution)
+- [x] Edge map from normal gradient
+- [x] AO map (cavity-style from height)
+- [x] CLI interface (clap: input, -o, -f, -q, -v, --quiet)
+- [x] wgpu compute shaders (incl. pipeline 2 inputs para smoothness)
 - [x] PNG/JPG/TGA/EXR support
 
 ### Limitações Conhecidas
@@ -23,23 +26,11 @@
 
 ---
 
-## Versão 1.1 - Smoothness & Parâmetros
+## Versão 1.1 - Parâmetros Inline
 
 **Timeline:** 1-2 semanas após MVP
 
 ### Novos Features
-
-#### Smoothness Map
-
-- **Descrição:** Similar ao metallic, detecta rugosidade da superfície
-- **Algoritmo:** Análise de contraste local + altas frequências
-- **Uso:** PBR roughness/smoothness workflows
-
-```bash
-materialize texture.png --maps=height,normal,metallic,smoothness
-# ou
-materialize texture.png --all  # todos os mapas
-```
 
 #### Parâmetros Inline
 
@@ -122,43 +113,11 @@ materialize ./textures/ --skip-existing
 
 ---
 
-## Versão 2.0 - AO (Ambient Occlusion)
+## Versão 2.0 - AO Avançado (opcional)
 
-**Timeline:** 1 mês após v1.2
+**Timeline:** Após v1.2 (opcional)
 
-### Feature Principal: AO Map
-
-**Descrição:** Gera oclusão ambiente via ray marching em hemisphere
-
-**Algoritmo:**
-1. Amostra hemisphere ao redor de cada pixel
-2. Ray march em direção dos raios
-3. Acumula oclusão quando raio intercepta superfície
-4. Normaliza e inverte (occlusion → ambient accessibility)
-
-**Parâmetros:**
-```bash
-materialize texture.png --ao \
-  --ao-ray-count=64 \
-  --ao-max-distance=0.5 \
-  --ao-spread=1.0 \
-  --ao-falloff=1.5
-```
-
-**Performance:**
-- Ray marching é caro (N rays por pixel)
-- Otimizações:
-  - Blue noise sampling
-  - Interleaved sampling
-  - Spatial filtering (blur) pós-process
-
-### Novos Mapas
-
-| Mapa | Flag | Descrição |
-|------|------|-----------|
-| AO | `--ao` | Ambient Occlusion |
-| Edge | `--edge` | Detecção de bordas |
-| Curvature | `--curvature` | Curvatura da superfície |
+AO cavity-style já está no MVP. Esta versão adicionaria AO por ray marching (normal+height) como no Materialize original, com parâmetros (ray count, spread, depth). Curvature map também considerado.
 
 ---
 
