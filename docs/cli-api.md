@@ -1,0 +1,251 @@
+# CLI API Reference
+
+## Sintaxe
+
+```
+materialize [OPTIONS] <INPUT>
+```
+
+## Argumentos
+
+### Posicionais
+
+| Argumento | Obrigatório | Descrição |
+|-----------|-------------|-----------|
+| `INPUT` | Sim | Caminho para a imagem de entrada |
+
+### Flags e Options
+
+| Opção | Curta | Tipo | Padrão | Descrição |
+|-------|-------|------|--------|-----------|
+| `--output` | `-o` | String | `./` | Diretório de saída |
+| `--format` | `-f` | Enum | `png` | Formato dos arquivos de saída |
+| `--quality` | `-q` | Int (0-100) | `95` | Qualidade JPEG (quando aplicável) |
+| `--prefix` | `-p` | String | (input stem) | Prefixo para nomes de arquivo |
+| `--suffix-height` | | String | `_height` | Sufixo para height map |
+| `--suffix-normal` | | String | `_normal` | Sufixo para normal map |
+| `--suffix-metallic` | | String | `_metallic` | Sufixo para metallic map |
+| `--verbose` | `-v` | Bool | `false` | Modo verbose |
+| `--help` | `-h` | | | Mostrar ajuda |
+| `--version` | `-V` | | | Mostrar versão |
+
+## Enums
+
+### Formato de Saída (`--format`)
+
+| Valor | Extensão | Características |
+|-------|----------|-----------------|
+| `png` | .png | Lossless, bom geral |
+| `jpg` | .jpg | Lossy, compacto |
+| `jpeg` | .jpeg | Alias para jpg |
+| `tga` | .tga | Uncompressed, games |
+| `exr` | .exr | HDR, alta precisão |
+
+## Convenção de Nomenclatura
+
+### Padrão
+
+Input: `texture.png`
+
+Output:
+- `texture_height.png`
+- `texture_normal.png`
+- `texture_metallic.png`
+
+### Com prefixo customizado
+
+```bash
+materialize texture.png -p brick_wall
+```
+
+Output:
+- `brick_wall_height.png`
+- `brick_wall_normal.png`
+- `brick_wall_metallic.png`
+
+### Com sufixos customizados
+
+```bash
+materialize texture.png --suffix-height="_h" --suffix-normal="_n" --suffix-metallic="_m"
+```
+
+Output:
+- `texture_h.png`
+- `texture_n.png`
+- `texture_m.png`
+
+## Códigos de Saída
+
+| Código | Significado |
+|--------|-------------|
+| `0` | Sucesso |
+| `1` | Erro genérico |
+| `2` | Input file não encontrado |
+| `3` | Formato de input não suportado |
+| `4` | Erro de GPU (adapter não encontrado) |
+| `5` | Erro de I/O (permissão, disco cheio, etc.) |
+| `6` | Imagem muito grande para GPU |
+
+## Mensagens de Erro
+
+### Input não encontrado
+
+```
+Error: Input file 'texture.png' not found
+```
+
+### Formato não suportado
+
+```
+Error: Unsupported image format 'texture.bmp'
+       Supported formats: png, jpg, tga, exr
+```
+
+### GPU não disponível
+
+```
+Error: No GPU adapter available
+       Ensure you have Vulkan (Linux), Metal (macOS), or DirectX 12 (Windows) drivers installed
+```
+
+### Out of memory
+
+```
+Error: Image too large (16384x16384 requires 2GB GPU memory)
+       Try using a smaller image or enabling tiled processing (--tiled)
+```
+
+## Modo Verbose
+
+Quando `-v` ou `--verbose` é usado, o CLI imprime informações de progresso:
+
+```bash
+$ materialize texture.png -v
+[1/5] Loading texture.png... 2048x2048 RGBA8 (16.7 MB)
+[2/5] Initializing GPU... Vulkan adapter: NVIDIA GeForce RTX 3060
+[3/5] Processing height map... done (45ms)
+[4/5] Processing normal map... done (12ms)
+[4/5] Processing metallic map... done (18ms)
+[5/5] Saving outputs... done
+
+Output files:
+  - texture_height.png (2048x2048, 4.2 MB)
+  - texture_normal.png (2048x2048, 12.5 MB)
+  - texture_metallic.png (2048x2048, 1.1 MB)
+
+Total time: 89ms
+```
+
+## Exemplos Completos
+
+### Exemplo 1: Uso básico
+
+```bash
+materialize brick.png
+```
+
+Gera na pasta atual:
+- `brick_height.png`
+- `brick_normal.png`
+- `brick_metallic.png`
+
+### Exemplo 2: Diretório de saída
+
+```bash
+materialize brick.png -o ./materials/brick/
+```
+
+Gera em `./materials/brick/`:
+- `brick_height.png`
+- `brick_normal.png`
+- `brick_metallic.png`
+
+### Exemplo 3: Pipeline em script
+
+```bash
+#!/bin/bash
+
+INPUT_DIR="./raw_textures"
+OUTPUT_DIR="./processed"
+
+mkdir -p "$OUTPUT_DIR"
+
+for file in "$INPUT_DIR"/*.png; do
+    name=$(basename "$file" .png)
+    echo "Processing $name..."
+    materialize "$file" -o "$OUTPUT_DIR/$name/" -p "$name"
+done
+
+echo "Done! Processed $(ls "$INPUT_DIR"/*.png | wc -l) textures"
+```
+
+### Exemplo 4: Formato específico por tipo de mapa
+
+(Nota: Versão futura, não suportado em MVP)
+
+```bash
+# Height em EXR (precisão), outros em PNG
+materialize texture.png --height-format=exr --normal-format=png --metallic-format=png
+```
+
+### Exemplo 5: Batch com paralelismo
+
+```bash
+# Processar 4 imagens simultaneamente
+ls *.png | xargs -P 4 -I {} materialize {} -o ./output/
+```
+
+## Integração com Scripts
+
+### Verificação de sucesso
+
+```bash
+if materialize texture.png; then
+    echo "Success!"
+else
+    echo "Failed with exit code $?"
+fi
+```
+
+### Captura de output
+
+```bash
+# Capturar apenas arquivos gerados
+files=$(materialize texture.png -v | grep "^-" | awk '{print $2}')
+echo "Generated: $files"
+```
+
+## Variáveis de Ambiente
+
+| Variável | Descrição |
+|----------|-----------|
+| `MATERIALIZE_GPU_BACKEND` | Forçar backend: `vulkan`, `metal`, `dx12` |
+| `MATERIALIZE_LOG` | Nível de log: `error`, `warn`, `info`, `debug`, `trace` |
+| `WGPU_BACKEND` | Backend wgpu (herdado da lib) |
+
+### Exemplo
+
+```bash
+MATERIALIZE_GPU_BACKEND=vulkan materialize texture.png
+MATERIALIZE_LOG=debug materialize texture.png -v
+```
+
+## Auto-completion
+
+### Bash
+
+```bash
+materialize --generate-completions bash > /etc/bash_completion.d/materialize
+```
+
+### Zsh
+
+```bash
+materialize --generate-completions zsh > "${fpath[1]}/_materialize"
+```
+
+### Fish
+
+```bash
+materialize --generate-completions fish > ~/.config/fish/completions/materialize.fish
+```
