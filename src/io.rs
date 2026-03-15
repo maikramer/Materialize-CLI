@@ -2,12 +2,15 @@ use anyhow::{Context, Result};
 use image::{DynamicImage, ImageFormat};
 use std::path::Path;
 
-/// Paths for the three PBR map outputs.
+/// Paths for the six PBR map outputs.
 #[derive(Debug, Clone)]
 pub struct OutputPaths {
     pub height_path: String,
     pub normal_path: String,
     pub metallic_path: String,
+    pub smoothness_path: String,
+    pub edge_path: String,
+    pub ao_path: String,
 }
 
 pub fn load_image(path: &str) -> Result<DynamicImage> {
@@ -78,6 +81,9 @@ pub fn get_output_paths(
         height_path: format!("{}/{}_height.{}", output_dir, input_name, ext),
         normal_path: format!("{}/{}_normal.{}", output_dir, input_name, ext),
         metallic_path: format!("{}/{}_metallic.{}", output_dir, input_name, ext),
+        smoothness_path: format!("{}/{}_smoothness.{}", output_dir, input_name, ext),
+        edge_path: format!("{}/{}_edge.{}", output_dir, input_name, ext),
+        ao_path: format!("{}/{}_ao.{}", output_dir, input_name, ext),
     }
 }
 
@@ -127,6 +133,42 @@ pub fn metallic_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
     DynamicImage::ImageLuma8(img)
 }
 
+/// Convert smoothness map (R8) to grayscale image
+pub fn smoothness_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
+    use image::{ImageBuffer, Luma};
+
+    let mut img = ImageBuffer::new(width, height);
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let idx = (y * width + x) as usize;
+        *pixel = Luma([data[idx]]);
+    }
+    DynamicImage::ImageLuma8(img)
+}
+
+/// Convert edge map (R8) to grayscale image
+pub fn edge_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
+    use image::{ImageBuffer, Luma};
+
+    let mut img = ImageBuffer::new(width, height);
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let idx = (y * width + x) as usize;
+        *pixel = Luma([data[idx]]);
+    }
+    DynamicImage::ImageLuma8(img)
+}
+
+/// Convert AO map (R8) to grayscale image
+pub fn ao_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
+    use image::{ImageBuffer, Luma};
+
+    let mut img = ImageBuffer::new(width, height);
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let idx = (y * width + x) as usize;
+        *pixel = Luma([data[idx]]);
+    }
+    DynamicImage::ImageLuma8(img)
+}
+
 /// Map OutputFormat to ImageFormat
 pub fn output_format_to_image_format(format: &super::cli::OutputFormat) -> ImageFormat {
     match format {
@@ -154,6 +196,9 @@ mod tests {
         assert_eq!(p.height_path, "./output/brick_height.png");
         assert_eq!(p.normal_path, "./output/brick_normal.png");
         assert_eq!(p.metallic_path, "./output/brick_metallic.png");
+        assert_eq!(p.smoothness_path, "./output/brick_smoothness.png");
+        assert_eq!(p.edge_path, "./output/brick_edge.png");
+        assert_eq!(p.ao_path, "./output/brick_ao.png");
     }
 
     #[test]
@@ -162,6 +207,9 @@ mod tests {
         assert_eq!(p.height_path, "./output/brick_height.jpg");
         assert_eq!(p.normal_path, "./output/brick_normal.jpg");
         assert_eq!(p.metallic_path, "./output/brick_metallic.jpg");
+        assert_eq!(p.smoothness_path, "./output/brick_smoothness.jpg");
+        assert_eq!(p.edge_path, "./output/brick_edge.jpg");
+        assert_eq!(p.ao_path, "./output/brick_ao.jpg");
     }
 
     #[test]

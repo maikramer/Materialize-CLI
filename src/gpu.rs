@@ -196,6 +196,121 @@ impl GpuContext {
         })
     }
 
+    /// Create a compute pipeline with two input textures and one storage output.
+    pub fn create_compute_pipeline_2_inputs(
+        &self,
+        shader_code: &str,
+        entry_point: &str,
+        input_format_0: wgpu::TextureFormat,
+        input_format_1: wgpu::TextureFormat,
+        output_format: wgpu::TextureFormat,
+    ) -> Result<ComputePipeline> {
+        let shader = self.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("compute_shader_2in"),
+            source: wgpu::ShaderSource::Wgsl(shader_code.into()),
+        });
+
+        let filterable_0 = matches!(
+            input_format_0,
+            wgpu::TextureFormat::Rgba8Unorm | wgpu::TextureFormat::Rgba8UnormSrgb
+        );
+        let filterable_1 = matches!(
+            input_format_1,
+            wgpu::TextureFormat::Rgba8Unorm | wgpu::TextureFormat::Rgba8UnormSrgb
+        );
+
+        let bind_group_layout = self
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("bind_group_layout_2in"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float {
+                                filterable: filterable_0,
+                            },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float {
+                                filterable: filterable_1,
+                            },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::StorageTexture {
+                            access: wgpu::StorageTextureAccess::WriteOnly,
+                            format: output_format,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+
+        let pipeline_layout =
+            self.device
+                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("pipeline_layout_2in"),
+                    bind_group_layouts: &[&bind_group_layout],
+                    push_constant_ranges: &[],
+                });
+
+        let pipeline = self
+            .device
+            .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some("compute_pipeline_2in"),
+                layout: Some(&pipeline_layout),
+                module: &shader,
+                entry_point,
+            });
+
+        Ok(ComputePipeline {
+            pipeline,
+            bind_group_layout,
+        })
+    }
+
+    pub fn create_bind_group_2_inputs(
+        &self,
+        layout: &wgpu::BindGroupLayout,
+        input_view_0: &wgpu::TextureView,
+        input_view_1: &wgpu::TextureView,
+        output_view: &wgpu::TextureView,
+    ) -> wgpu::BindGroup {
+        self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(input_view_0),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(input_view_1),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(output_view),
+                },
+            ],
+            label: Some("bind_group_2in"),
+        })
+    }
+
     pub fn dispatch_compute(
         &self,
         pipeline: &wgpu::ComputePipeline,
