@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Debug, Clone)]
 pub enum OutputFormat {
@@ -35,12 +35,15 @@ impl std::fmt::Display for OutputFormat {
 
 #[derive(Parser, Debug)]
 #[command(name = "materialize")]
-#[command(about = "Generate PBR maps from diffuse textures")]
+#[command(about = "Generate PBR maps (height, normal, metallic, smoothness, edge, AO) from diffuse textures")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
-#[command(after_help = "EXAMPLES:\n  materialize texture.png -o ./out/\n  materialize diffuse.png --format png -v")]
+#[command(after_help = "EXAMPLES:\n  materialize texture.png -o ./out/\n  materialize diffuse.png --format png -v\n  materialize skill install")]
 pub struct Cli {
-    #[arg(help = "Input image path")]
-    pub input: String,
+    #[command(subcommand)]
+    pub subcommand: Option<CliSubcommand>,
+
+    /// Input image path (required when not using a subcommand)
+    pub input: Option<String>,
 
     #[arg(short, long, help = "Output directory", default_value = ".")]
     pub output: String,
@@ -56,4 +59,22 @@ pub struct Cli {
 
     #[arg(long, help = "Suppress 'Generated' file list on success")]
     pub quiet: bool,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum CliSubcommand {
+    /// Manage the materialize-cli Cursor skill
+    Skill(SkillCommand),
+}
+
+#[derive(Parser, Debug)]
+pub struct SkillCommand {
+    #[command(subcommand)]
+    pub subcommand: SkillSubcommand,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SkillSubcommand {
+    /// Install the materialize-cli skill into this project's .cursor/skills
+    Install,
 }
