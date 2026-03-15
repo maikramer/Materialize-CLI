@@ -4,7 +4,7 @@
 var input_texture: texture_2d<f32>;
 
 @group(0) @binding(1)
-var output_texture: texture_storage_2d<r8unorm, write>;
+var output_texture: texture_storage_2d<rgba8unorm, write>;
 
 // RGB to HSL conversion
 fn rgb_to_hsl(rgb: vec3<f32>) -> vec3<f32> {
@@ -97,5 +97,5 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let color = textureLoad(input_texture, coords, 0).rgb;
     let metallic = detect_metallic(color);
 
-    textureStore(output_texture, coords, vec4<f32>(metallic, 0.0, 0.0, 0.0));
+    textureStore(output_texture, coords, vec4<f32>(metallic, 0.0, 0.0, 1.0));
 }

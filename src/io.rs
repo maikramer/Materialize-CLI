@@ -15,7 +15,6 @@ pub fn load_image(path: &str) -> Result<DynamicImage> {
     Ok(img)
 }
 
-#[allow(dead_code)]
 pub fn save_image(
     image: &DynamicImage,
     path: &str,
@@ -87,7 +86,6 @@ pub fn height_to_image(width: u32, height: u32, data: &[f32]) -> DynamicImage {
 }
 
 /// Convert normal map (RGBA8) to RGB image
-#[allow(dead_code)]
 pub fn normal_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
     use image::{ImageBuffer, Rgb};
 
@@ -105,7 +103,6 @@ pub fn normal_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
 }
 
 /// Convert metallic map (R8) to grayscale image
-#[allow(dead_code)]
 pub fn metallic_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
     use image::{ImageBuffer, Luma};
 
@@ -120,7 +117,6 @@ pub fn metallic_to_image(width: u32, height: u32, data: &[u8]) -> DynamicImage {
 }
 
 /// Map OutputFormat to ImageFormat
-#[allow(dead_code)]
 pub fn output_format_to_image_format(format: &super::cli::OutputFormat) -> ImageFormat {
     match format {
         super::cli::OutputFormat::Png => ImageFormat::Png,
