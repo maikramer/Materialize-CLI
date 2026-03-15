@@ -1,91 +1,82 @@
-# Materialize CLI
+# Materialize CLI — Documentation
 
-CLI minimalista em Rust que converte imagens em materiais PBR (Physically Based Rendering) usando compute shaders GPU via wgpu.
+This folder contains the main documentation for Materialize CLI (in English). For a Portuguese overview, see [README_PT.md](README_PT.md).
 
-## Visão Geral
+## Overview
 
-Materialize CLI é uma ferramenta de linha de comando que transforma uma imagem difusa em seis mapas PBR:
+Materialize CLI is a command-line tool that converts a diffuse/albedo image into six PBR (Physically Based Rendering) maps using GPU compute shaders via [wgpu](https://wgpu.rs/). Based on the original [Materialize](https://github.com/BoundingBoxSoftware/Materialize) (Unity/Windows), this CLI version is:
 
-- **Height Map** - Representação de elevação da superfície
-- **Normal Map** - Vetores de superfície para iluminação
-- **Metallic Map** - Máscara de metalicidade
-- **Smoothness Map** - Rugosidade/suavidade (base + contribuição metálica)
-- **Edge Map** - Detecção de bordas a partir da normal
-- **AO Map** - Ambient Occlusion (cavity-style a partir do height)
+- **Minimal** — No GUI, no Unity; command-line only
+- **Fast** — GPU processing via compute shaders
+- **Cross-platform** — Linux, Windows, macOS via wgpu
+- **Straightforward** — One command, six output maps
 
-Baseado no [Materialize original](https://github.com/BoundingBoxSoftware/Materialize) (Unity/Windows), esta versão CLI é:
+## Installation
 
-- **Minimalista** - Sem UI, sem Unity, apenas linha de comando
-- **Rápida** - Processamento GPU via compute shaders
-- **Cross-platform** - Linux, Windows, macOS via wgpu
-- **Direta** - Um comando, múltiplas saídas
+### Using the installer (recommended)
 
-## Instalação
-
-### Via instalador (recomendado, estilo denv/galaxy)
-
-Requisitos: Python 3 (para o instalador), Rust/cargo (para compilar).
+Requirements: Python 3 (for the installer), Rust/cargo (to build).
 
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-user/materialize-cli
-cd materialize-cli
+git clone https://github.com/maikramer/Materialize-CLI.git
+cd Materialize-CLI
 
 # Linux/macOS
 ./install.sh
 
-# Ou diretamente com Python
+# Or run the Python installer directly
 python3 installer/installer.py install
 
-# Desinstalar
+# Uninstall
 ./install.sh uninstall
-# ou
+# or
 python3 installer/installer.py uninstall
 ```
 
-O instalador compila com `cargo build --release` e copia o binário para `~/.local/bin/materialize`. Garanta que `~/.local/bin` está no seu PATH.
+The installer runs `cargo build --release` and copies the binary to `~/.local/bin/materialize`. Ensure `~/.local/bin` is on your `PATH`.
 
-**Windows:** use `install.ps1` (PowerShell) ou `install.bat` (CMD).
+**Windows:** use `install.ps1` (PowerShell) or `install.bat` (CMD).
 
-### Via Cargo (manual)
+### Manual build (Cargo)
 
 ```bash
 cargo build --release
 cargo install --path .
 ```
 
-## Uso Básico
+## Basic usage
 
 ```bash
-# Gerar todos os mapas a partir de uma textura
+# Generate all maps from a texture
 materialize texture.png
 
-# Saída gerada:
-# - texture_height.png, texture_normal.png, texture_metallic.png
-# - texture_smoothness.png, texture_edge.png, texture_ao.png
+# Output files:
+# texture_height.png, texture_normal.png, texture_metallic.png,
+# texture_smoothness.png, texture_edge.png, texture_ao.png
 
-# Especificar diretório de saída
+# Specify output directory
 materialize texture.png -o ./output/
 
-# Escolher formato de saída
+# Choose output format
 materialize texture.png --format exr
 ```
 
-## Documentação
+## Documentation index
 
-- [Arquitetura](architecture.md) - Estrutura e componentes do sistema
-- [Funcionalidades](features.md) - Recursos e capacidades
-- [CLI API](cli-api.md) - Interface de linha de comando
-- [Algoritmos](algorithms.md) - Detalhes dos algoritmos de processamento
-- [Shaders](shaders.md) - Documentação dos shaders WGSL
-- [Roadmap](roadmap.md) - Desenvolvimento futuro
+| Document | Description |
+|----------|-------------|
+| [Architecture](architecture.md) | System structure and components |
+| [Features](features.md) | Capabilities and behavior |
+| [CLI API](cli-api.md) | Command-line reference, options, env vars, shell completion |
+| [Algorithms](algorithms.md) | Processing algorithms (height, normal, metallic, etc.) |
+| [Shaders](shaders.md) | WGSL compute shaders |
+| [Roadmap](roadmap.md) | Future plans and ideas |
 
-## Requisitos
+## Requirements
 
 - Rust 1.75+
-- GPU com suporte a Vulkan (Linux), Metal (macOS), ou DirectX 12 (Windows)
-- Drivers atualizados
+- GPU with Vulkan (Linux), Metal (macOS), or DirectX 12 (Windows) support; up-to-date drivers
 
-## Licença
+## License
 
-MIT - Baseado no Materialize original por Bounding Box Software
+MIT. Based on the original Materialize by Bounding Box Software.
